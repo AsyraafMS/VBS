@@ -1,18 +1,8 @@
 package vbs3;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.StringTokenizer;
+import java.io.*;
+import java.util.*;
 import java.util.stream.Collectors;
-
-
-//Remarks
-
-
 
 public class Main {
     private static ArrayList<Venue> venues = new ArrayList<>();
@@ -42,7 +32,7 @@ public class Main {
                     handleLogin(scanner);
                     break;
                 case 2: //Register user
-                    //registerUser(scanner);
+                    registerUser(scanner, users);
                     break;
                 case 3: //Exit
                     exitProgram(scanner);
@@ -180,9 +170,14 @@ public class Main {
         String password = scanner.next();
         System.out.print("Are you registering as Admin? (yes/no): ");
         String isAdminInput = scanner.next();
-        boolean isAdmin = isAdminInput.equalsIgnoreCase("yes");
+        int isAdmin = 0;
+        if (isAdminInput.equalsIgnoreCase("yes")) {
+        	isAdmin = 1;
+        } else {
+        	isAdmin = 2;
+        }
 
-        if (isAdmin) {
+        if (isAdmin == 1) {
             System.out.print("Enter admin referral code: ");
             String referralCode = scanner.next();
             if (referralCode.equals("UTHM_ADMIN")) {
@@ -194,17 +189,24 @@ public class Main {
         } else {
             System.out.println("Registration as User successful.");
         }
+        
+     // Determine the next user ID based on the last user's ID in the list
+        int newUserId = 1; // Default ID if the list is empty
+        if (!users.isEmpty()) {
+            User lastUser = users.get(users.size() - 1);
+            newUserId = lastUser.getUserId() + 1;
+        }
 
         // Create a new User object
-        User newUser = new User(5, username, password, isAdmin);
+        User newUser = new User(newUserId, username, password, isAdmin);
 
         // Add the user to the ArrayList
         users.add(newUser);
 
         // Write the user details to the user.txt file
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("user.txt", true))) {
-            writer.write(newUser.toString()); // Write the user data in a CSV-like format
-            writer.newLine(); // Move to the next line for the next user
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\\\vbs3\\\\src\\\\vbs3\\\\user.txt", true))) {
+        	writer.newLine(); // Move to the next line for the next user
+        	writer.write(newUser.getUserId()+":"+newUser.getUsername()+":"+newUser.getPassword()+":"+newUser.getType()); // Write the user data in a CSV-like format
         } catch (IOException e) {
             System.out.println("Error writing to file: " + e.getMessage());
         }
