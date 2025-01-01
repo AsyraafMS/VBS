@@ -1,4 +1,5 @@
-package vbs3;
+package testVBS;
+
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
