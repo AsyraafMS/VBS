@@ -7,18 +7,22 @@ import java.util.stream.Collectors;
 //remarks
 // 1. add validation lastly
 
-//edit line 19-21, ,257,319,432,450,461-462, 532
-
 public class Main {
     private static ArrayList<Venue> venues = new ArrayList<>();
     private static ArrayList<User> users = new ArrayList<>();
     private static ArrayList<Booking> booking = new ArrayList<>();
+    
+    static String venueDir = "D:\\testVBS2\\src\\testVBS\\venue.txt";
+	static String userDir = "D:\\testVBS2\\src\\testVBS\\user.txt";
+	static String bookingDir = "D:\\testVBS2\\src\\testVBS\\booking.txt";
 
     public static void main(String[] args) {
         // Load venues from a file
-        loadVenuesFromFile("D:\\testVBS2\\src\\testVBS\\venue.txt");
-        loadUsersFromFile("D:\\testVBS2\\src\\testVBS\\user.txt");
-        loadBookingFromFile("D:\\testVBS2\\src\\testVBS\\booking.txt");
+    	
+    	
+        loadVenuesFromFile(venueDir);
+        loadUsersFromFile(userDir);
+        loadBookingFromFile(bookingDir);
         
         Scanner scanner = new Scanner(System.in);
         UserService userService = new UserService();
@@ -254,7 +258,7 @@ public class Main {
         users.add(newUser);
 
         // Write the user details to the user.txt file
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\testVBS2\\src\\testVBS\\user.txt", true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(userDir, true))) {
         	writer.newLine(); // Move to the next line for the next user
         	writer.write(newUser.getUsername()+":"+newUser.getPassword()+":"+newUser.getType()); // Write the user data in a CSV-like format
         } catch (IOException e) {
@@ -316,7 +320,7 @@ public class Main {
         booking.add(newBooking);
         
         // Write the booking details to the booking.txt file
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\testVBS2\\src\\testVBS\\booking.txt", true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(bookingDir, true))) {
             writer.newLine(); // Move to the next line for the next booking
             writer.write(newBooking.getUser().getUsername() + "," + newBooking.getVenue().getName() + "," + newBooking.getBookingDate() + "," + newBooking.getBookingTime() + "," + newBooking.getBookingStatus());
             System.out.println("Booking added successfully.");
@@ -429,7 +433,7 @@ public class Main {
             // Update the venue status
             bookingToManage.getVenue().setStatus(true);
             //update to txt file
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\testVBS2\\src\\testVBS\\venue.txt"))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(venueDir))) {
                 for (Venue v : venues) {
                     writer.write(v.getBuilding() + ":" + v.getVenueCode() + ":" + v.getName() + ":" + v.getSize() + ":" + v.getType() + ":" + v.getStatus());
                     writer.newLine();
@@ -447,7 +451,7 @@ public class Main {
         }
 
         // Update the booking.txt file
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\testVBS2\\src\\testVBS\\booking.txt"))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(bookingDir))) {
             for (Booking b : booking) {
             writer.write(b.getUser().getUsername() + "," + b.getVenue().getName() + "," + b.getBookingDate() + "," + b.getBookingTime() + "," + b.getBookingStatus());
             writer.newLine();
@@ -458,8 +462,8 @@ public class Main {
         }
 
         
-        loadVenuesFromFile("D:\\testVBS2\\src\\testVBS\\venue.txt");
-        loadBookingFromFile("D:\\testVBS2\\src\\testVBS\\booking.txt");
+        loadVenuesFromFile(venueDir);
+        loadBookingFromFile(bookingDir);
     }
 
     //for user
@@ -529,7 +533,7 @@ public class Main {
             System.out.println("Venue status cleared successfully.");
 
             // Update the venue.txt file
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\testVBS2\\src\\testVBS\\venue.txt"))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(venueDir))) {
             for (Venue v : venues) {
                 writer.write(v.getBuilding() + ":" + v.getVenueCode() + ":" + v.getName() + ":" + v.getSize() + ":" + v.getType() + ":" + v.getStatus());
                 writer.newLine();
