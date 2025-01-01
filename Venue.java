@@ -58,8 +58,6 @@ class Venue {
         } catch (IOException e) {
             System.out.println("Error updating file: " + e.getMessage());
         }
-        
- 
     }
 
     public void cancelBooking(String filename) {
