@@ -1,4 +1,4 @@
-package vbs3;
+package testVBS;
 
 public class Session {
     private static User loggedInUser ;
