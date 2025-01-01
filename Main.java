@@ -54,6 +54,7 @@ public class Main {
     }
 
     private static void loadVenuesFromFile(String filename) {
+        venues.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
             String line, name, building, venueCode, roomSize, roomType, status;
             
@@ -75,8 +76,9 @@ public class Main {
         }
     }
     private static void loadUsersFromFile(String filename) {
+        users.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
-            String line, id, name, password, level;
+            String line, name, password, level;
             
             while ((line = reader.readLine()) != null) {
                 StringTokenizer tokenizer = new StringTokenizer(line,":");
@@ -92,6 +94,7 @@ public class Main {
         }
     }
     private static void loadBookingFromFile(String filename) {
+        booking.clear();
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
             String line, user, venue, date, time, status;
             
@@ -150,8 +153,9 @@ public class Main {
             //System.out.println(String.format("| %-34s |","n. Sort Venue"));
             System.out.println(String.format("| %-34s |","2. Book Venue"));
             System.out.println(String.format("| %-34s |","3. Cancel Booking"));
-            System.out.println(String.format("| %-34s |","4. Log Out"));
-            System.out.println(String.format("| %-34s |","5. Show Bookings"));
+            System.out.println(String.format("| %-34s |","4. Show Bookings"));
+            System.out.println(String.format("| %-34s |","5. Log Out"));
+            
             System.out.println("+====================================+");
 
             System.out.print("Enter your choice: ");
@@ -168,17 +172,17 @@ public class Main {
                     cancelBooking(scanner);
                     break;
                 case 4: //Exit
-                	System.out.println("\nSigning out...\n");
-                    //exitProgram(scanner);
-                    return;
-                case 5: //Exit
                 	showUserBooking();
                     //exitProgram(scanner);
                     break;
+                case 5: //Exit
+                	System.out.println("\nSigning out...\n");
+                    //exitProgram(scanner);
+                    return;
                 default:
                     System.out.println("\nInvalid choice. Please try again.");
             }
-        } while (choice != 4);
+        } while (choice != 5);
     }
     
     private static void showAdminMenu(Scanner scanner){
@@ -189,8 +193,8 @@ public class Main {
             System.out.println("+====================================+");
             System.out.println(String.format("| %-34s |","1. View Booking Requests"));
             System.out.println(String.format("| %-34s |","2. Manage Booking Request"));
-            System.out.println(String.format("| %-34s |","3. Log Out"));
-            System.out.println(String.format("| %-34s |","4. Clear Venue Status"));
+            System.out.println(String.format("| %-34s |","3. Clear Venue Status"));
+            System.out.println(String.format("| %-34s |","4. Log Out"));
             System.out.println("+====================================+");
 
             System.out.print("Enter your choice: ");
@@ -204,15 +208,15 @@ public class Main {
                     manageRequests(scanner);
                     break;
                 case 3: //Exit
-                	System.out.println("\nSigning out...\n");
+                    clearVenueStatus(scanner);
                     break;
                 case 4: //Exit
-                    clearVenueStatus(scanner);
+                	System.out.println("\nSigning out...\n");
                     break;
                 default:
                     System.out.println("\nInvalid choice. Please try again.");
             }
-        } while (choice != 3);
+        } while (choice != 4);
     }
 
     //done
@@ -263,16 +267,35 @@ public class Main {
     //add booking
     private static void addBooking(Scanner scanner, ArrayList<Booking> booking) {
     	viewVenues();
-        System.out.println("\nRegister User:");
+        System.out.println("\nAdd Booking:");
         System.out.print("Enter venue name: ");
         String nameIn = scanner.next();
+        while (nameIn.isEmpty()) {
+            System.out.print("Venue name cannot be empty. Enter venue name: ");
+            nameIn = scanner.next();
+        }
+
         System.out.print("Enter booking date (DD/MM/YYYY): ");
         String dateIn = scanner.next();
+        while (!dateIn.matches("\\d{2}/\\d{2}/\\d{4}") || !isValidDay(dateIn)) {
+            System.out.print("Invalid date format or day. Enter booking date (DD/MM/YYYY): ");
+            dateIn = scanner.next();
+        }
+
         System.out.print("Enter booking start time (hh:mm) in 24hrs format: ");
         String timeStartIn = scanner.next();
+        while (!timeStartIn.matches("\\d{2}:\\d{2}") || !isValidTime(timeStartIn)) {
+            System.out.print("Invalid time format. Enter booking start time (hh:mm) in 24hrs format: ");
+            timeStartIn = scanner.next();
+        }
+
         System.out.print("Enter booking end time (hh:mm) in 24hrs format: ");
         String timeEndIn = scanner.next();
-
+        while (!timeEndIn.matches("\\d{2}:\\d{2}") || !isValidTime(timeEndIn)) {
+            System.out.print("Invalid time format. Enter booking end time (hh:mm) in 24hrs format: ");
+            timeEndIn = scanner.next();
+        }
+        
         String bookingTime = timeStartIn + " - " + timeEndIn;
         
         Venue selectedVenue = null;
@@ -308,12 +331,13 @@ public class Main {
     
     //done
     private static void handleLogin(Scanner scanner, UserService userService) {
+        System.out.print("\n[Log In Menu]\n");
     	 System.out.print("Enter username: ");
          String loginUsername = scanner.next();
          System.out.print("Enter password: ");
          String loginPassword = scanner.next();
          if (userService.loginUser (loginUsername, loginPassword)) {
-             System.out.println("Login successful! Welcome, " + Session.getLoggedInUser ().getUsername());
+             System.out.println("\nLogin successful! Welcome, " + Session.getLoggedInUser ().getUsername());
              if(Session.getLoggedInUser().getType() == 1) {
             	 showAdminMenu(scanner);
              } else {
@@ -434,6 +458,10 @@ public class Main {
         } catch (IOException e) {
             System.out.println("Error writing to file: " + e.getMessage());
         }
+
+        
+        loadVenuesFromFile("D:\\testVBS2\\src\\testVBS\\venue.txt");
+        loadBookingFromFile("D:\\testVBS2\\src\\testVBS\\booking.txt");
     }
 
     //for user
@@ -441,15 +469,85 @@ public class Main {
             
     }   
 
-    //clear venue status
+    //reset venue status to available
     private static void clearVenueStatus(Scanner scanner) {
         //show list of venues where status is true
+        String format1 = "+-----------------------------------------------------------------------+";
+        String format2 = String.format("| %-10s | %-4s | %-10s | %-10s | %-10s | %-10s |", "Building", "Code", "Name", "Size", "Type", "Status");
+        int pageSize = 5;
+        List<Venue> availableVenues = venues.stream().filter(Venue::getStatus).collect(Collectors.toList());
+        int totalVenues = availableVenues.size();
+        int totalPages = (int) Math.ceil((double) totalVenues / pageSize);
+        Scanner pageScanner = new Scanner(System.in);
+
+        int currentPage = 1;
+        while (true) {
+            int start = (currentPage - 1) * pageSize;
+            int end = Math.min(start + pageSize, totalVenues);
+            System.out.println("\n" + format1);
+            System.out.println(String.format("| %-29s%-40s |", "", "Available Venues"));
+            System.out.println(format1);
+            System.out.println(format2);
+            System.out.println(format1);
+
+            // Display available venues
+            for (int i = start; i < end; i++) {
+            Venue venue = availableVenues.get(i);
+            System.out.println(venue.toString());
+            }
+            System.out.println(format1);
+
+            System.out.println("Available Venues (Page " + currentPage + " of " + totalPages + "):");
+            if (currentPage < totalPages) {
+            System.out.print("\nEnter 'n' for next page or 'q' to back to menu: ");
+            String input = pageScanner.nextLine();
+            if (input.equalsIgnoreCase("n")) {
+                currentPage++;
+            } else if (input.equalsIgnoreCase("q")) {
+                break;
+            } else {
+                System.out.println("\nInvalid input. Please try again.");
+            }
+            } else {
+            System.out.println("\nEnd of results.");
+            break;
+            }
+        }
         
         //choose venue and set to false
+        System.out.print("Enter the venue name to clear status: ");
+        String venueName = scanner.next();
+        Venue venueToClear = null;
+
+        for (Venue v : venues) {
+            if (v.getName().equalsIgnoreCase(venueName) && v.getStatus()) {
+            venueToClear = v;
+            break;
+            }
+        }
+
+        if (venueToClear != null) {
+            venueToClear.setStatus(false);
+            System.out.println("Venue status cleared successfully.");
+
+            // Update the venue.txt file
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\testVBS2\\src\\testVBS\\venue.txt"))) {
+            for (Venue v : venues) {
+                writer.write(v.getBuilding() + ":" + v.getVenueCode() + ":" + v.getName() + ":" + v.getSize() + ":" + v.getType() + ":" + v.getStatus());
+                writer.newLine();
+            }
+            System.out.println("Venue status updated in file successfully.");
+            } catch (IOException e) {
+            System.out.println("Error writing to file: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Venue not found or already cleared.");
+        }
+
+
         
 
         // Update the venue.txt file
-        
     }
     
     private static int showUserBooking() {
@@ -472,7 +570,7 @@ public class Main {
             b.getVenue().getName(), 
             b.getBookingDate(), 
             b.getBookingTime(), 
-            "Pending"));
+            b.getBookingStatus() == 1 ? "Approved" : b.getBookingStatus() == 2 ? "Rejected" : "Pending"));
             }
         }
         System.out.println("+=============================================================================+");
@@ -505,6 +603,21 @@ public class Main {
         }
         System.out.println("+=============================================================================+");
         return booking.size();
+    }
+
+    // Helper method to validate time
+    private static boolean isValidTime(String time) {
+        String[] parts = time.split(":");
+        int hour = Integer.parseInt(parts[0]);
+        int minute = Integer.parseInt(parts[1]);
+        return hour >= 0 && hour < 24 && minute >= 0 && minute < 60;
+    }
+
+    // Helper method to validate day
+    private static boolean isValidDay(String date) {
+        String[] parts = date.split("/");
+        int day = Integer.parseInt(parts[0]);
+        return day > 0 && day <= 31;
     }
 
     //done
