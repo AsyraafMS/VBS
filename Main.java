@@ -1,19 +1,26 @@
-package vbs3;
+package testVBS;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Main {
     private static ArrayList<Venue> venues = new ArrayList<>();
     private static ArrayList<User> users = new ArrayList<>();
+    private static ArrayList<Booking> booking = new ArrayList<>();
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
         // Load venues from a file
-        loadVenuesFromFile("D:\\vbs3\\src\\vbs3\\venue.txt");
-        loadUsersFromFile("D:\\vbs3\\src\\vbs3\\user.txt");
+        loadVenuesFromFile("D:\\testVBS2\\src\\testVBS\\venue.txt");
+        loadUsersFromFile("D:\\testVBS2\\src\\testVBS\\user.txt");
+        loadBookingFromFile("D:\\testVBS2\\src\\testVBS\\booking.txt");
+        
+        UserService userService = new UserService();
       
         int choice;
         while (true) {
@@ -29,7 +36,7 @@ public class Main {
 
             switch (choice) {
                 case 1: //Login
-                    handleLogin(scanner);
+                    handleLogin(scanner, userService);
                     break;
                 case 2: //Register user
                     registerUser(scanner, users);
@@ -70,19 +77,55 @@ public class Main {
             
             while ((line = reader.readLine()) != null) {
                 StringTokenizer tokenizer = new StringTokenizer(line,":");
-                id = tokenizer.nextToken();
                 name = tokenizer.nextToken();
                 password = tokenizer.nextToken();
                 level = tokenizer.nextToken();
 
-                users.add(new User(Integer.parseInt(id),name,password, Integer.parseInt(level)));
+                users.add(new User(name,password, Integer.parseInt(level)));
             }
             System.out.println("Users loaded successfully from " + filename);
         } catch (IOException e) {
             System.out.println("Error loading users from file: " + e.getMessage());
         }
     }
-   
+    private static void loadBookingFromFile(String filename) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line, user, venue, date, time, status;
+            
+            while ((line = reader.readLine()) != null) {
+                StringTokenizer tokenizer = new StringTokenizer(line,",");
+                user = tokenizer.nextToken();
+                venue = tokenizer.nextToken();
+                date = tokenizer.nextToken();
+                time = tokenizer.nextToken();
+                status = tokenizer.nextToken();
+
+                //get the user object from the user input
+                User userObj = null;
+                for (User u : users) {
+                    if (u.getUsername().equalsIgnoreCase(user)) {
+                        userObj = u;
+                        break;
+                    }
+                }
+
+                // get venue obj from the user input
+                Venue venueObj = null;
+                for (Venue v : venues) {
+                    if (v.getName().equalsIgnoreCase(venue)) {
+                        venueObj = v;
+                        break;
+                    }
+                }
+
+                booking.add(new Booking(userObj,venueObj, date,time,Integer.parseInt(status)));
+            }
+            System.out.println("Users loaded successfully from " + filename);
+        } catch (IOException e) {
+            System.out.println("Error loading users from file: " + e.getMessage());
+        }
+    }
+    
     private static void showMainMenu(){
         System.out.println("\n+====================================+");
             System.out.println(String.format("| %-34s |", "Venue Booking System"));
@@ -93,9 +136,8 @@ public class Main {
             System.out.println("+====================================+");
     }
 
-    private static void showUserMenu(Scanner scanner, String username){
+    private static void showUserMenu(Scanner scanner){
         int choice;
-        System.out.println("\nWelcome " + username+"!");
 		do{
             System.out.println("\n+====================================+");
             System.out.println(String.format("| %-34s |", "Venue Booking System"));
@@ -116,7 +158,7 @@ public class Main {
                     viewVenues();
                     break;
                 case 2: //Book Venue
-                    reserveVenue(scanner);
+                    addBooking(scanner, booking);
                     break;
                 case 3: //Cancel Booking
                     cancelBooking(scanner);
@@ -131,9 +173,8 @@ public class Main {
         } while (choice != 4);
     }
     
-    private static void showAdminMenu(Scanner scanner, String username){
+    private static void showAdminMenu(Scanner scanner){
         int choice;
-        System.out.println("\nWelcome " + username+"!");
 		do{
             System.out.println("\n+====================================+");
             System.out.println(String.format("| %-34s |", "Venue Booking System"));
@@ -141,6 +182,7 @@ public class Main {
             System.out.println(String.format("| %-34s |","1. View Booking Requests"));
             System.out.println(String.format("| %-34s |","2. Manage Booking Request"));
             System.out.println(String.format("| %-34s |","3. Log Out"));
+            System.out.println(String.format("| %-34s |","4. Clear Venue Status"));
             System.out.println("+====================================+");
 
             System.out.print("Enter your choice: ");
@@ -151,18 +193,23 @@ public class Main {
                 	showBooking();
                     break;
                 case 2: //Manage Bookings
-                    //reserveVenue(scanner);
+                    manageRequests(scanner);
                     break;
                 case 3: //Exit
                 	System.out.println("\nSigning out...\n");
                     return;
+                case 4: //Exit
+                    clearVenueStatus(scanner);
+                return;
                 default:
                     System.out.println("\nInvalid choice. Please try again.");
             }
         } while (choice != 4);
     }
 
+    //done
     private static void registerUser(Scanner scanner, ArrayList<User> users) {
+    	int isAdmin = 0;
         System.out.println("\nRegister User:");
         System.out.print("Enter your username: ");
         String username = scanner.next();
@@ -170,7 +217,7 @@ public class Main {
         String password = scanner.next();
         System.out.print("Are you registering as Admin? (yes/no): ");
         String isAdminInput = scanner.next();
-        int isAdmin = 0;
+        
         if (isAdminInput.equalsIgnoreCase("yes")) {
         	isAdmin = 1;
         } else {
@@ -189,68 +236,89 @@ public class Main {
         } else {
             System.out.println("Registration as User successful.");
         }
-        
-     // Determine the next user ID based on the last user's ID in the list
-        int newUserId = 1; // Default ID if the list is empty
-        if (!users.isEmpty()) {
-            User lastUser = users.get(users.size() - 1);
-            newUserId = lastUser.getUserId() + 1;
-        }
 
         // Create a new User object
-        User newUser = new User(newUserId, username, password, isAdmin);
+        User newUser = new User(username, password, isAdmin);
 
         // Add the user to the ArrayList
         users.add(newUser);
 
         // Write the user details to the user.txt file
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\\\vbs3\\\\src\\\\vbs3\\\\user.txt", true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\testVBS2\\src\\testVBS\\user.txt", true))) {
         	writer.newLine(); // Move to the next line for the next user
-        	writer.write(newUser.getUserId()+":"+newUser.getUsername()+":"+newUser.getPassword()+":"+newUser.getType()); // Write the user data in a CSV-like format
+        	writer.write(newUser.getUsername()+":"+newUser.getPassword()+":"+newUser.getType()); // Write the user data in a CSV-like format
         } catch (IOException e) {
             System.out.println("Error writing to file: " + e.getMessage());
         }
     }
     
-    private static String login(Scanner scanner) {
-        System.out.print("Enter username: ");
-        String username = scanner.next();
-        System.out.print("Enter password: ");
-        String password = scanner.next();
+    //add booking
+    private static void addBooking(Scanner scanner, ArrayList<Booking> booking) {
+    	viewVenues();
+        System.out.println("\nRegister User:");
+        System.out.print("Enter venue name: ");
+        String nameIn = scanner.next();
+        System.out.print("Enter booking date (DD/MM/YYYY): ");
+        String dateIn = scanner.next();
+        System.out.print("Enter booking start time (hh:mm) in 24hrs format: ");
+        String timeStartIn = scanner.next();
+        System.out.print("Enter booking end time (hh:mm) in 24hrs format: ");
+        String timeEndIn = scanner.next();
 
-        for (User user : users) {
-            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
-                return username; // Return username if a matching user is found
+        String bookingTime = timeStartIn + " - " + timeEndIn;
+        
+        Venue selectedVenue = null;
+        for (Venue venue : venues) {
+            if (venue.getName().equalsIgnoreCase(nameIn)) {
+            selectedVenue = venue;
+            break;
             }
         }
-        return null;
+
+        if (selectedVenue == null) {
+            System.out.println("Venue not found. Please try again.");
+            return;
+        }
+        
+        // Create a new User object
+        Booking newBooking = new Booking(Session.getLoggedInUser(),selectedVenue, dateIn, bookingTime, 3);
+
+        // Add the user to the ArrayList
+        booking.add(newBooking);
+        
+        // Write the booking details to the booking.txt file
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\testVBS2\\src\\testVBS\\booking.txt", true))) {
+            writer.newLine(); // Move to the next line for the next booking
+            writer.write(newBooking.getUser().getUsername() + "," + newBooking.getVenue().getName() + "," + newBooking.getBookingDate() + "," + newBooking.getBookingTime() + "," + newBooking.getBookingStatus());
+            System.out.println("Booking added successfully.");
+        } catch (IOException e) {
+            System.out.println("Error writing to file: " + e.getMessage());
+        }
+
+        
+    }
+    
+    //done
+    private static void handleLogin(Scanner scanner, UserService userService) {
+    	 System.out.print("Enter username: ");
+         String loginUsername = scanner.next();
+         System.out.print("Enter password: ");
+         String loginPassword = scanner.next();
+         if (userService.loginUser (loginUsername, loginPassword)) {
+             System.out.println("Login successful! Welcome, " + Session.getLoggedInUser ().getUsername());
+             if(Session.getLoggedInUser().getType() == 1) {
+            	 showAdminMenu(scanner);
+             } else {
+            	 showUserMenu(scanner);
+             }
+         } else {
+             System.out.println("Invalid username or password.");
+         }
     }
 
-    private static void handleLogin(Scanner scanner){
-        String username = login(scanner);
-        if (username != null) {
-            boolean isAdmin = checkIfAdmin(username);
-        if (isAdmin) {
-            showAdminMenu(scanner, username);
-        } else {
-            showUserMenu(scanner, username);
-        }
-        } else {
-        System.out.println("Login failed. Please try again.");
-        }
-    }
-
-    private static boolean checkIfAdmin(String username) {
-        for (User user : users) {
-            if (user.getUsername().equals(username) && user.getType() == 1) {
-                return true; // User is an admin if level is 1
-            }
-        }
-        return false;
-    }
-
+    //done
     private static void viewVenues() {
-        String format1 = "\n+-----------------------------------------------------------------------+";
+        String format1 = "+-----------------------------------------------------------------------+";
         String format2 = String.format("| %-10s | %-4s | %-10s | %-10s | %-10s | %-10s |", "Building", "Code", "Name", "Size", "Type", "Status");
         int pageSize = 5;
         int totalVenues = venues.size();
@@ -295,94 +363,115 @@ public class Main {
         }
     }
     
-    private static void reserveVenue(Scanner scanner){
-        System.out.print("\nEnter venue name to book: ");
-        scanner.nextLine();
-        String name = scanner.nextLine();
-        for (Venue venue : venues) {
-            if (venue.getName().equalsIgnoreCase(name)) {
-                venue.reserveVenue("D:\\\\vbs3\\\\src\\\\vbs3\\\\venue.txt");
-            } return;
+    //done (approve/reject)
+    private static void manageRequests(Scanner scanner){
+        showBooking();
+        
+        System.out.print("Enter the username and venue to manage (format: username,venue): ");
+        String input = scanner.next();
+        String[] parts = input.split(",");
+        if (parts.length != 2) {
+            System.out.println("Invalid input format. Please try again.");
+            return;
         }
-        System.out.println("\nVenue not found.");
-    };
+        String username = parts[0];
+        String venueName = parts[1];
 
-    private static void cancelBooking(Scanner scanner) {
-        
-    	int totalVenues = showBooking();
-        //cancel
-        if (totalVenues>0) {
-            System.out.print("\nEnter venue name to cancel booking: ");
-            String name = scanner.nextLine();
-            for (Venue venue : venues) {
-                if (venue.getName().equalsIgnoreCase(name)) {
-                    venue.cancelBooking("venue.txt");
-                    return;
-                }
+        Booking bookingToManage = null;
+        for (Booking b : booking) {
+            if (b.getUser().getUsername().equalsIgnoreCase(username) && b.getVenue().getName().equalsIgnoreCase(venueName) && b.getBookingStatus() == 3) {
+            bookingToManage = b;
+            break;
             }
-            System.out.println("\nVenue not found.");
         }
-        
+
+        if (bookingToManage == null) {
+            System.out.println("Booking not found. Please try again.");
+            return;
+        }
+
+        System.out.print("Approve or Reject the booking (a/r): ");
+        String decision = scanner.next();
+        if (decision.equalsIgnoreCase("a")) {
+            bookingToManage.setBookingStatus(1); // Approved
+            System.out.println("Booking approved.");
+
+            // Update the venue status
+            bookingToManage.getVenue().setStatus(true);
+            //update to txt file
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\testVBS2\\src\\testVBS\\venue.txt"))) {
+                for (Venue v : venues) {
+                    writer.write(v.getBuilding() + ":" + v.getVenueCode() + ":" + v.getName() + ":" + v.getSize() + ":" + v.getType() + ":" + v.getStatus());
+                    writer.newLine();
+                }
+                System.out.println("Venue status updated successfully.");
+            } catch (IOException e) {
+                System.out.println("Error writing to file: " + e.getMessage());
+            }
+
+        } else if (decision.equalsIgnoreCase("r")) {
+            bookingToManage.setBookingStatus(2); // Rejected
+            System.out.println("Booking rejected.");
+        } else {
+            System.out.println("Invalid input. Please try again.");
+        }
+
+        // Update the booking.txt file
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\testVBS2\\src\\testVBS\\booking.txt"))) {
+            for (Booking b : booking) {
+            writer.write(b.getUser().getUsername() + "," + b.getVenue().getName() + "," + b.getBookingDate() + "," + b.getBookingTime() + "," + b.getBookingStatus());
+            writer.newLine();
+            }
+            System.out.println("Booking status updated successfully.");
+        } catch (IOException e) {
+            System.out.println("Error writing to file: " + e.getMessage());
+        }
+    }
+
+    //for user
+    private static void cancelBooking(Scanner scanner) {
+            
     }   
+
+    //clear venue status
+    private static void clearVenueStatus(Scanner scanner) {
+        //show list of venues where status is true
+        
+        //choose venue and set to false
+        
+
+        // Update the venue.txt file
+        
+    }
     
     private static int showBooking() {
-    	//start display booking list 
-        String format1 = "+-----------------------------------------------------------------------+";
-        String format2 = String.format("| %-10s | %-4s | %-10s | %-10s | %-10s | %-10s |", "Building", "Code", "Name", "Size", "Type", "Status");
-        int pageSize = 5;
-
-        // Filter venues where getStatus() returns true
-        List<Venue> filteredVenues = venues.stream()
-                .filter(Venue::getStatus)
-                .collect(Collectors.toList());
-
-        int totalVenues = filteredVenues.size();
-        int totalPages = (int) Math.ceil((double) totalVenues / pageSize);
-        Scanner pageScanner = new Scanner(System.in);
-
-        if (totalVenues == 0) {
-            System.out.println("\nNo results found.");
+        if (booking.isEmpty()) {
+            System.out.println("No bookings available.");
             return 0;
         }
 
-        int currentPage = 1;
-        while (true) {
-            int start = (currentPage - 1) * pageSize;
-            int end = Math.min(start + pageSize, totalVenues);
-            System.out.println("\n" + format1);
-            System.out.println(String.format("| %-29s%-40s |", "", "Venue List"));
-            System.out.println(format1);
-            System.out.println(format2);
-            System.out.println(format1);
-
-            // Display filtered venues for the current page
-            for (int i = start; i < end; i++) {
-                Venue venue = filteredVenues.get(i);
-                System.out.println(venue.toString());
-            }
-
-            System.out.println(format1);
-            System.out.println("Available Venues (Page " + currentPage + " of " + totalPages + "):");
-
-            if (currentPage < totalPages) {
-                System.out.print("\nEnter 'n' for next page or 'q' to back to menu: ");
-                String input = pageScanner.nextLine();
-                if (input.equalsIgnoreCase("n")) {
-                    currentPage++;
-                } else if (input.equalsIgnoreCase("q")) {
-                    break;
-                } else {
-                    System.out.println("\nInvalid input. Please try again.");
-                }
-            } else {
-                System.out.println("\nEnd of results.");
-                break;
+        System.out.println("\n+=============================================================================+");
+        System.out.println(String.format("| %-75s |", "Booking List"));
+        System.out.println("+=============================================================================+");
+        System.out.println(String.format("| %-5s | %-10s | %-10s | %-10s | %-15s | %-10s |", "No.", "User", "Venue", "Date", "Time", "Status"));
+        System.out.println("+=============================================================================+");
+        int bookingNumber = 1;
+        for (Booking b : booking) {
+            if (b.getBookingStatus() == 3) {
+            System.out.println(String.format("| %-5d | %-10s | %-10s | %-10s | %-15s | %-10s |", 
+            bookingNumber++,
+            b.getUser().getUsername(), 
+            b.getVenue().getName(), 
+            b.getBookingDate(), 
+            b.getBookingTime(), 
+            "Pending"));
             }
         }
-        return 0;
-        // end display booking list
+        System.out.println("+=============================================================================+");
+        return booking.size();
     }
 
+    //done
     private static void exitProgram(Scanner scanner){
         System.out.println("\nExiting");
         scanner.close();
