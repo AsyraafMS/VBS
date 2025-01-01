@@ -1,14 +1,13 @@
 package testVBS;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
 //remarks
 // 1. add validation lastly
+
+//edit line 19-21, ,257,319,432,450,461-462, 532
 
 public class Main {
     private static ArrayList<Venue> venues = new ArrayList<>();
@@ -16,13 +15,12 @@ public class Main {
     private static ArrayList<Booking> booking = new ArrayList<>();
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-
         // Load venues from a file
         loadVenuesFromFile("D:\\testVBS2\\src\\testVBS\\venue.txt");
         loadUsersFromFile("D:\\testVBS2\\src\\testVBS\\user.txt");
         loadBookingFromFile("D:\\testVBS2\\src\\testVBS\\booking.txt");
         
+        Scanner scanner = new Scanner(System.in);
         UserService userService = new UserService();
       
         int choice;
