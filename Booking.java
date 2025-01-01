@@ -1,7 +1,12 @@
-package vbs3;
+package testVBS;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
 
 public class Booking {
-    private int bookingId;
 	private User user;
     private Venue venue;
     private String bookingDate;
@@ -9,8 +14,7 @@ public class Booking {
     private int bookingStatus; // 1 = pending, 2 = approved, 3 = rejected
 
     //parametrize contructor;
-    public Booking(int bookingId, User user, Venue venue, String bookingDate, String bookingTime, int bookingStatus){
-        this.bookingId = bookingId;
+    public Booking(User user, Venue venue, String bookingDate, String bookingTime, int bookingStatus){
         this.user = user;
         this.venue = venue;
         this.bookingDate = bookingDate;
@@ -19,7 +23,6 @@ public class Booking {
     }
 
     //getter
-    public int getBookingId() {return bookingId;}
     public User getUser() {return user;}
     public Venue getVenue() {return venue;}
     public String getBookingDate() {return bookingDate;}
@@ -27,13 +30,29 @@ public class Booking {
     public int getBookingStatus() {return bookingStatus;}
 
     //setter
-    public void setBookingId(int bookingId) {this.bookingId = bookingId;}
     public void setUser(User user) {this.user = user;}
     public void setVenue(Venue venue) {this.venue = venue;}
     public void setBookingDate(String bookingDate) {this.bookingDate = bookingDate;}
     public void setBookingTime(String bookingTime) {this.bookingTime = bookingTime;}
     public void setBookingStatus(int bookingStatus) {this.bookingStatus = bookingStatus;}
 
-    
+    //
+    public void addBooking(String filename){
+        if (this.bookingStatus == 2) {
+            System.out.println(venue.getName() + " is already booked.");
+        } else {
+        	//add booking
+            this.bookingStatus = 1;
+            System.out.println(venue.getName() + " booking request successfully sent and pending.");
+        }
+
+        //writing to file
+        try {
+            String bookingDetails = user.getUsername() + ":" + venue.getName() + ":" + bookingDate + ":" + bookingTime + ":" + bookingStatus;
+            Files.write(Paths.get(filename), (bookingDetails + System.lineSeparator()).getBytes(), StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            System.out.println("Error writing to file: " + e.getMessage());
+        }
+    };
 
 }
