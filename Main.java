@@ -269,7 +269,16 @@ public class Main {
     //add booking
     private static void addBooking(Scanner scanner, ArrayList<Booking> booking) {
     	viewVenues();
+
         System.out.println("\nAdd Booking:");
+
+        System.out.print("Enter 'cancel' to cancel the action or proceed with booking details.\n");
+        String action = scanner.next();
+        if (action.equalsIgnoreCase("cancel")) {
+            System.out.println("Booking action cancelled.");
+            return;
+        }
+
         System.out.print("Enter venue name: ");
         String nameIn = scanner.next();
         while (nameIn.isEmpty()) {
@@ -363,37 +372,36 @@ public class Main {
         while (true) {
             int start = (currentPage - 1) * pageSize;
             int end = Math.min(start + pageSize, totalVenues);
-            System.out.println("\n"+format1);
+            System.out.println("\n" + format1);
             System.out.println(String.format("| %-29s%-40s |", "", "Venue List"));
             System.out.println(format1);
             System.out.println(format2);
             System.out.println(format1);
 
-            //search result start
+            // Display venues for the current page
             for (int i = start; i < end; i++) {
-                Venue venue = venues.get(i);
-                System.out.println(venue.toString()); 
+            Venue venue = venues.get(i);
+            System.out.println(venue.toString());
             }
-            //search result end
             System.out.println(format1);
-            
 
             System.out.println("Available Venues (Page " + currentPage + " of " + totalPages + "):");
-            if (currentPage < totalPages) {
-                System.out.print("\nEnter 'n' for next page or 'q' to back to menu: ");
-                String input = pageScanner.nextLine();
-                if (input.equalsIgnoreCase("n")) {
-                    currentPage++;
-                } else if (input.equalsIgnoreCase("q")) {
-                    break;
-                } else {
-                    System.out.println("\nInvalid input. Please try again.");
-                }
-            } else {
-                System.out.println("\nEnd of results.");
+            if (currentPage < totalPages || currentPage > 1) {
+            System.out.print("\nEnter 'n' for next page, 'p' for previous page, or 'q' to go to next menu: ");
+            String input = pageScanner.nextLine();
+            if (input.equalsIgnoreCase("n") && currentPage < totalPages) {
+                currentPage++;
+            } else if (input.equalsIgnoreCase("p") && currentPage > 1) {
+                currentPage--;
+            } else if (input.equalsIgnoreCase("q")) {
                 break;
+            } else {
+                System.out.println("\nInvalid input. Please try again.");
             }
-
+            } else {
+            System.out.println("\nEnd of results.");
+            break;
+            }
         }
     }
     
