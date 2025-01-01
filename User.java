@@ -1,5 +1,4 @@
-package testVBS;
-
+package vbs3;
 
 public class User {
     private String username;

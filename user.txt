@@ -1,2 +1,4 @@
-0:admin:admin:1
-1:user:user:2
+admin:admin:1
+user:user:2
+john:john:2
+mark:mark:1
