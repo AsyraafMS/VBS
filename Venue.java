@@ -1,5 +1,4 @@
-package vbs3;
-
+package testVBS;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -36,7 +35,6 @@ class Venue {
 
 
     //Methods
-
     public void reserveVenue(String filename){
         if (this.venueStatus) {
             System.out.println(name + " is already booked.");
@@ -44,7 +42,8 @@ class Venue {
             this.venueStatus = true;
             System.out.println(name + " is successfully booked.");
         }
-
+        
+        // for venue.txt
         try {
             List<String> lines = Files.readAllLines(Paths.get(filename));
             for (int i = 0; i < lines.size(); i++) {
@@ -59,7 +58,9 @@ class Venue {
         } catch (IOException e) {
             System.out.println("Error updating file: " + e.getMessage());
         }
-    };
+        
+ 
+    }
 
     public void cancelBooking(String filename) {
         if (venueStatus) {
