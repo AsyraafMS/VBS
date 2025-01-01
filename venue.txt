@@ -1,4 +1,4 @@
-FSKTM:i:ARUBA:35:Lab:true
+FSKTM:i:ARUBA:35:Lab:false
 FSKTM:i:AUDI:120:DK:false
 FSKTM:i:BT1:40:BT:false
 FSKTM:i:BT2:40:BT:false
