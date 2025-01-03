@@ -4,7 +4,7 @@ import java.sql.*;
 
 public class Database {
     private String hostname = "localhost";
-    private int port = 33066;  
+    private int port = 3306;  
     private String username = "root";
     private String password = "";
 
