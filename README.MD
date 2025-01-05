@@ -31,8 +31,9 @@ open the command prompt and paste this command
 - browser the path directory/folder that you download this repository
 - Lauch 
 - file -> "open projects from file systems"
-- click "directory" -> click "select folder"
-- in src/vbs_uthm -> click run "Sqlautomation.java" and "mainVBS.java"
+- click "directory" -> click "select folder" -> VBS2
+- Launch XAMPP and make sure Apache and MySQL is running.
+- in src/vbs_uthm -> click run "Sqlautomation.java" first to create the database, then  "mainVBS.java"
 
 
 
