@@ -130,7 +130,8 @@ public class mainVBS extends Database{
     public static void main(String[] args) {
         User user = new User();
         Venue venue = new Venue();
-        Banner banner = new Banner();
+        //Banner banner = new Banner();
+        MenuOption menu = new MenuOption();
         Scanner input = new Scanner(System.in);
         int[] session = null;
 
@@ -141,22 +142,30 @@ public class mainVBS extends Database{
         
         
         while (true) { 
-            banner.mainBanner();
+            menu.mainBanner();
             
             System.out.print("Enter your option: ");
             int option = input.nextInt();
             switch(option) {
                 case 1:
+                	int count=0;
+                	int maxattempt=3;
                     while(true){
-                        session = login(conn, user, input);
+                		session = login(conn, user, input);
+
                         if(session[0] != 0){
                             break;
+                        }
+                        count ++;
+                        if(session[0] == 0 && count == maxattempt) {
+                        	session[1] = -1;
+                        	break;
                         }
                     }
                     // option for user
                     if (session[1] == 0){
                         while (true) { 
-                            banner.userBanner();
+                            menu.userBanner();
                             System.out.print("Enter your option: ");
                             int userOption = input.nextInt();
                             switch (userOption) {
@@ -200,7 +209,7 @@ public class mainVBS extends Database{
                     if (session[1] == 1){
                         System.out.println("HI Admin");
                         while (true) { 
-                            banner.adminbanner();
+                            menu.adminbanner();
                             System.out.print("Enter your option: ");
                             int adminOption = input.nextInt();
                             switch (adminOption) {
